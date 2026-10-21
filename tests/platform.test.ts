@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import { eq } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
-import { listings, users } from "@/server/db/schema";
+import { listings, notifications, users } from "@/server/db/schema";
 import { can } from "@/server/auth/permissions";
 import { createSession, validateSessionToken } from "@/server/auth/sessions";
 import { ServiceError } from "@/server/errors";
@@ -100,6 +100,24 @@ describe("listings", () => {
     const [row] = await db.select().from(listings).where(eq(listings.id, res.id));
     expect(row!.phone).toBe("+998901234567");
     expect(row!.telegram).toBe("seller_test");
+  });
+
+  it("notifies moderators (not regular users) when a listing enters the queue", async () => {
+    const owner = await makeUser(db);
+    const mod = await makeUser(db, "moderator");
+    const { id } = await saveListing(owner.id, null, phoneListing(), { submit: true });
+    const modNotes = await db.select().from(notifications).where(eq(notifications.userId, mod.id));
+    expect(modNotes.some((n) => n.type === "listing_pending_review" && n.link === `/admin/listings/${id}`)).toBe(true);
+    const ownerNotes = await db.select().from(notifications).where(eq(notifications.userId, owner.id));
+    expect(ownerNotes.some((n) => n.type === "listing_pending_review")).toBe(false);
+  });
+
+  it("re-syncs the Super Admin password from the environment on deploy", async () => {
+    const { ensureSuperAdmin } = await import("@/server/services/users");
+    await upsertSuperAdmin("deploy_admin", "first-password-1");
+    expect((await ensureSuperAdmin("deploy_admin", "first-password-1")).updated).toBe(false);
+    expect((await ensureSuperAdmin("deploy_admin", "second-password-2")).updated).toBe(true);
+    await expect(authenticate("deploy_admin", "second-password-2")).resolves.toMatchObject({ role: "super_admin" });
   });
 
   it("validates required category attributes and contacts", async () => {

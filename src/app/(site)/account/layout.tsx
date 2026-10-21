@@ -11,8 +11,8 @@ export default async function AccountLayout({ children }: { children: React.Reac
   const [{ t }, unread] = await Promise.all([getI18n(), unreadCount(user.id)]);
   return (
     <div className="container-x py-6 md:py-10">
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
+        <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           <p className="mb-3 hidden text-xs font-semibold uppercase tracking-wide text-subtle lg:block">{t.account.title}</p>
           <AccountNav unread={unread} />
         </aside>

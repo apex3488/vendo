@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "../db";
 import { categories, listings, users } from "../db/schema";
 import type { ListingStatus } from "./listings";
@@ -43,4 +43,16 @@ export async function adminListListings(opts: { status?: string; q?: string; pag
     db.select({ n: count() }).from(listings).innerJoin(users, eq(users.id, listings.userId)).where(where),
   ]);
   return { items, total: total?.n ?? 0, perPage };
+}
+
+/** The next listing in the moderation queue (oldest first), skipping the one just handled. */
+export async function nextPendingListingId(excludeId: number) {
+  const db = await getDb();
+  const [row] = await db
+    .select({ id: listings.id })
+    .from(listings)
+    .where(and(eq(listings.status, "pending"), isNull(listings.deletedAt), ne(listings.id, excludeId)))
+    .orderBy(listings.updatedAt)
+    .limit(1);
+  return row?.id ?? null;
 }

@@ -6,10 +6,12 @@ import { NextResponse, type NextRequest } from "next/server";
  * permissions against the database on the server.
  */
 export function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
   const hasSession = req.cookies.has("vendo_session");
-  if (!hasSession) {
+  if (!hasSession && pathname !== "/admin/login") {
     const url = req.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = isAdmin ? "/admin/login" : "/login";
     url.search = `?next=${encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search)}`;
     return NextResponse.redirect(url);
   }

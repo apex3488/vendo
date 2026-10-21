@@ -1,4 +1,4 @@
-import { saveSettingsAction } from "../actions";
+import { saveSettingsAction } from "@/app/admin/actions";
 import { AdminForm } from "@/components/admin/admin-ui";
 import { ACheck, AField, AInput, APanel, ATextarea } from "@/components/admin/fields";
 import { requirePermissionPage } from "@/server/auth/current";

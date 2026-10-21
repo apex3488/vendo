@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { setUserBlockedAction, setUserRoleAction } from "../../actions";
+import { setUserBlockedAction, setUserRoleAction } from "@/app/admin/actions";
 import { ActionButton } from "@/components/admin/admin-ui";
 import { APanel } from "@/components/admin/fields";
 import { Badge } from "@/components/ui/misc";
@@ -50,7 +50,7 @@ export default async function AdminUserDetail({ params }: PageProps<"/admin/user
         <Badge tone={u.status === "active" ? "success" : "danger"}>{u.status === "active" ? "Активен" : "Заблокирован"}</Badge>
         <Badge tone="ink">{ROLE_RU[u.role]}</Badge>
       </div>
-      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-5">
           <APanel title="Профиль">
             <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">

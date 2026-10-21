@@ -20,7 +20,7 @@ import { can, type Role } from "../auth/permissions";
 import { ServiceError } from "../errors";
 import { audit } from "./audit";
 import { getAttributesForCategory, isLeafCategory, type Attribute } from "./categories";
-import { notify } from "./notifications";
+import { notify, notifyModerators } from "./notifications";
 import { enforce } from "./rate-limit";
 import { getSettings } from "./settings";
 
@@ -301,6 +301,7 @@ export async function saveListing(
 
   if (nextStatus !== (existing?.status ?? null)) {
     await recordStatus(listingId, existing?.status ?? null, nextStatus, userId);
+    if (nextStatus === "pending") await notifyModerators(listingId, values.title);
   }
   return { id: listingId, status: nextStatus };
 }
@@ -346,6 +347,7 @@ export async function ownerSetStatus(userId: string, listingId: number, action: 
     })
     .where(eq(listings.id, l.id));
   await recordStatus(l.id, l.status, to, userId);
+  if (to === "pending") await notifyModerators(l.id, l.title);
 }
 
 // ---------------------------------------------------------------------------

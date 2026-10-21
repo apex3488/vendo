@@ -1,4 +1,4 @@
-import { saveCampaignAction, savePlacementAction } from "../actions";
+import { saveCampaignAction, savePlacementAction } from "@/app/admin/actions";
 import { AdminForm } from "@/components/admin/admin-ui";
 import { ACheck, AField, AInput, APanel, ASelect } from "@/components/admin/fields";
 import { Badge } from "@/components/ui/misc";

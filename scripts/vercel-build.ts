@@ -2,7 +2,7 @@
  * Runs before `next build` on Vercel production deployments:
  *  1. applies database migrations;
  *  2. seeds reference data (idempotent, never overwrites admin edits);
- *  3. creates the Super Admin from ADMIN_USERNAME / ADMIN_PASSWORD if it does not exist yet.
+ *  3. creates the Super Admin from ADMIN_USERNAME / ADMIN_PASSWORD, or re-syncs its password/role if they drifted.
  * Preview deployments skip this so they never change the production database.
  */
 import { setDbForTests } from "../src/server/db";
@@ -27,7 +27,8 @@ async function main() {
   if (username && password) {
     setDbForTests(db);
     const res = await ensureSuperAdmin(username, password);
-    console.log(res.created ? `[vercel-build] Super Admin "${username}" created` : `[vercel-build] Super Admin "${username}" already exists`);
+    const state = res.created ? "created" : res.updated ? "updated from ADMIN_PASSWORD" : "already up to date";
+    console.log(`[vercel-build] Super Admin "${username}" ${state}`);
   }
   await pool.end();
 }

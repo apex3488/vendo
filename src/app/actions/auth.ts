@@ -5,6 +5,7 @@ import { getI18n } from "@/lib/i18n/server";
 import { siteUrl } from "@/lib/site";
 import { clientIpHash, toActionError } from "@/server/action-utils";
 import { endSession, startSession } from "@/server/auth/current";
+import { isStaff } from "@/server/auth/permissions";
 import { ServiceError, type ActionResult } from "@/server/errors";
 import { mailConfigured, sendMail } from "@/server/mail";
 import { enforce } from "@/server/services/rate-limit";
@@ -30,6 +31,32 @@ export async function loginAction(_: ActionResult | null, form: FormData): Promi
     return toActionError(e);
   }
   redirect(safeNext(form.get("next")));
+}
+
+/** Only same-site admin paths are allowed after the staff sign-in. */
+function safeAdminNext(next: unknown) {
+  const v = typeof next === "string" ? next : "";
+  return v.startsWith("/admin") && !v.startsWith("/admin/login") ? v : "/admin";
+}
+
+/**
+ * Staff sign-in (the lock button / /admin/login). Regular users get the same "wrong login or
+ * password" answer and no session, so the form does not reveal who is staff.
+ */
+export async function adminLoginAction(_: ActionResult | null, form: FormData): Promise<ActionResult> {
+  const login = String(form.get("login") ?? "").slice(0, 254);
+  const password = String(form.get("password") ?? "").slice(0, 200);
+  try {
+    const ip = await clientIpHash();
+    await enforce(`admin-login:ip:${ip}`, 10, 15 * 60);
+    await enforce(`login:acct:${login.toLowerCase()}`, 10, 15 * 60);
+    const user = await authenticate(login, password);
+    if (!isStaff(user.role)) throw new ServiceError("invalid_credentials");
+    await startSession(user.id);
+  } catch (e) {
+    return toActionError(e);
+  }
+  redirect(safeAdminNext(form.get("next")));
 }
 
 export async function registerAction(_: ActionResult | null, form: FormData): Promise<ActionResult> {

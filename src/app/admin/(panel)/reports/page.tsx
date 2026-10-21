@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { resolveReportAction } from "../actions";
+import { resolveReportAction } from "@/app/admin/actions";
 import { ActionButton } from "@/components/admin/admin-ui";
 import { Badge } from "@/components/ui/misc";
 import { REPORT_REASON_RU, STATUS_RU } from "@/lib/admin-labels";

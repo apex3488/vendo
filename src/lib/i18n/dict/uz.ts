@@ -402,6 +402,7 @@ const uz: Dict = {
     subscription_activated: "«{plan}» obunasi faollashtirildi",
     report_resolved: "№{id} shikoyatingiz koʻrib chiqildi",
     store_verified: "«{name}» doʻkoni tekshiruvdan oʻtdi",
+    listing_pending_review: "Moderatsiyada yangi eʼlon: «{title}»",
   },
   errors: {
     generic: "Nimadir notoʻgʻri ketdi. Qaytadan urinib koʻring.",

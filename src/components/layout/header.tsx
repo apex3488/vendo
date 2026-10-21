@@ -13,6 +13,7 @@ import { popularQueries } from "@/server/services/search";
 import { Logo } from "../logo";
 import { LinkButton } from "../ui/button";
 import { CityPicker } from "./city-picker";
+import { HideOnPaths } from "./hide-on-paths";
 import { LocalePicker } from "./locale-picker";
 import { SearchBox } from "./search-box";
 import { UserMenu } from "./user-menu";
@@ -72,9 +73,9 @@ export async function Header() {
           </div>
         </div>
       </div>
-      <div className="container-x pb-3 lg:hidden">
+      <HideOnPaths paths={["/"]} className="container-x pb-3 lg:hidden">
         <SearchBox popular={popular} categories={categories} cityId={city?.id ?? null} compact />
-      </div>
+      </HideOnPaths>
     </header>
   );
 }

@@ -23,7 +23,7 @@ export async function requireUserPage(next?: string): Promise<SessionUser> {
 /** For pages: 404s for anyone without the permission (does not reveal admin routes). */
 export async function requirePermissionPage(permission: Permission): Promise<SessionUser> {
   const user = await getCurrentUser();
-  if (!user) redirect(`/login?next=/admin`);
+  if (!user) redirect("/admin/login");
   if (!can(user.role, permission)) {
     const { notFound } = await import("next/navigation");
     notFound();

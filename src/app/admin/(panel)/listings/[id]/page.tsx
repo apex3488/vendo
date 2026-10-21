@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { moderateListingAction } from "../../actions";
+import { moderateListingAction } from "@/app/admin/actions";
 import { ActionButton } from "@/components/admin/admin-ui";
 import { APanel } from "@/components/admin/fields";
 import { Badge } from "@/components/ui/misc";
@@ -16,6 +16,7 @@ import { can } from "@/server/auth/permissions";
 import { getCategoryWithAncestors } from "@/server/services/categories";
 import { getListingAttributesView, getListingById, getListingImages, getStatusHistory } from "@/server/services/listings";
 import { adminGetUser } from "@/server/services/users";
+import { nextPendingListingId } from "@/server/services/admin-listings";
 import { mediaUrl } from "@/server/storage";
 
 export default async function AdminListingDetail({ params }: PageProps<"/admin/listings/[id]">) {
@@ -23,13 +24,16 @@ export default async function AdminListingDetail({ params }: PageProps<"/admin/l
   const id = Number((await params).id);
   const l = Number.isSafeInteger(id) ? await getListingById(id) : null;
   if (!l) notFound();
-  const [images, attrs, chain, author, history] = await Promise.all([
+  const [images, attrs, chain, author, history, nextId] = await Promise.all([
     getListingImages(l.id),
     getListingAttributesView(l.id),
     getCategoryWithAncestors(l.categoryId),
     adminGetUser(l.userId),
     getStatusHistory(l.id),
+    nextPendingListingId(l.id),
   ]);
+  // After a decision on a queued listing, jump straight to the next one in the queue.
+  const after = l.status === "pending" ? (nextId ? `/admin/listings/${nextId}` : "/admin/listings?status=pending") : undefined;
   const t = getDict("ru");
   const canModerate = can(actor.role, "listings.moderate");
   const decide = async (decision: "approve" | "reject" | "block" | "unpublish", reason: string) => {
@@ -39,9 +43,16 @@ export default async function AdminListingDetail({ params }: PageProps<"/admin/l
 
   return (
     <div className="space-y-5">
-      <Link href="/admin/listings" className="text-sm font-semibold text-muted hover:text-ink">
-        ← К списку
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/admin/listings?status=pending" className="text-sm font-semibold text-muted hover:text-ink">
+          ← Очередь модерации
+        </Link>
+        {nextId && (
+          <Link href={`/admin/listings/${nextId}`} className="text-sm font-semibold text-muted hover:text-ink">
+            Следующее →
+          </Link>
+        )}
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="t-1">{l.title || "—"}</h1>
@@ -56,25 +67,26 @@ export default async function AdminListingDetail({ params }: PageProps<"/admin/l
       </div>
 
       {canModerate && (
-        <APanel title="Модерация">
-          <div className="flex flex-wrap gap-2">
+        <APanel title="Модерация" className={l.status === "pending" ? "border-lime-strong bg-lime-soft/40" : undefined}>
+          {l.status === "pending" && <p className="mb-3 text-sm text-ink-2">Объявление ждёт проверки. После решения откроется следующее из очереди.</p>}
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             {["pending", "rejected", "blocked"].includes(l.status) && (
-              <ActionButton run={decide.bind(null, "approve")} variant="accent" confirm="Одобрить и опубликовать объявление?">
+              <ActionButton run={decide.bind(null, "approve")} variant="accent" size="md" redirectTo={after} confirm={l.status === "pending" ? undefined : "Опубликовать объявление?"}>
                 Одобрить
               </ActionButton>
             )}
             {["pending", "active"].includes(l.status) && (
-              <ActionButton run={decide.bind(null, "reject")} variant="secondary" prompt="Причина отклонения (увидит автор):" promptRequired>
+              <ActionButton run={decide.bind(null, "reject")} variant="secondary" size="md" redirectTo={after} prompt="Причина отклонения (увидит автор)" promptRequired presets={REJECT_PRESETS}>
                 Отклонить
               </ActionButton>
             )}
             {l.status === "active" && (
-              <ActionButton run={decide.bind(null, "unpublish")} variant="secondary" confirm="Снять объявление с публикации?">
+              <ActionButton run={decide.bind(null, "unpublish")} variant="secondary" size="md" confirm="Снять объявление с публикации?">
                 Снять с публикации
               </ActionButton>
             )}
             {l.status !== "blocked" && (
-              <ActionButton run={decide.bind(null, "block")} variant="danger" prompt="Причина блокировки (нарушение правил):" promptRequired>
+              <ActionButton run={decide.bind(null, "block")} variant="danger" size="md" redirectTo={after} prompt="Причина блокировки (нарушение правил)" promptRequired presets={BLOCK_PRESETS}>
                 Заблокировать
               </ActionButton>
             )}
@@ -83,7 +95,7 @@ export default async function AdminListingDetail({ params }: PageProps<"/admin/l
         </APanel>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-5">
           <APanel title={`Фотографии (${images.length})`}>
             {images.length ? (
@@ -157,6 +169,9 @@ export default async function AdminListingDetail({ params }: PageProps<"/admin/l
     </div>
   );
 }
+
+const REJECT_PRESETS = ["Нет фотографий или фото плохого качества", "Неверная категория", "Нереальная или неверная цена", "Недостаточно описания", "Неверные контакты", "Дубликат объявления"];
+const BLOCK_PRESETS = ["Мошенничество", "Запрещённый товар или услуга", "Оскорбительное содержание", "Спам"];
 
 function Row({ k, v }: { k: string; v: string }) {
   return (

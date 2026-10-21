@@ -402,6 +402,7 @@ const en: Dict = {
     subscription_activated: "Subscription “{plan}” is active",
     report_resolved: "Your report #{id} has been reviewed",
     store_verified: "Store “{name}” has been verified",
+    listing_pending_review: "New listing awaiting moderation: “{title}”",
   },
   errors: {
     generic: "Something went wrong. Please try again.",

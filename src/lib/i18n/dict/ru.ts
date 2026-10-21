@@ -400,6 +400,7 @@ const ru = {
     subscription_activated: "Подписка «{plan}» активирована",
     report_resolved: "Ваша жалоба №{id} рассмотрена",
     store_verified: "Магазин «{name}» прошёл проверку",
+    listing_pending_review: "Новое объявление на модерации: «{title}»",
   },
   errors: {
     generic: "Что-то пошло не так. Попробуйте ещё раз.",

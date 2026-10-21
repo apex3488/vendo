@@ -6,7 +6,7 @@ import {
   cancelSubscriptionAction,
   savePromotionPlanAction,
   saveSubscriptionPlanAction,
-} from "../actions";
+} from "@/app/admin/actions";
 import { ActionButton, AdminForm } from "@/components/admin/admin-ui";
 import { ACheck, AField, AInput, APanel, ASelect, ATable, I18nInputs } from "@/components/admin/fields";
 import { Badge } from "@/components/ui/misc";

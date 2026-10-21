@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { setStoreStatusAction, setStoreVerifiedAction } from "../actions";
+import { setStoreStatusAction, setStoreVerifiedAction } from "@/app/admin/actions";
 import { ActionButton } from "@/components/admin/admin-ui";
 import { ATable } from "@/components/admin/fields";
 import { Badge } from "@/components/ui/misc";

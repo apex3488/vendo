@@ -47,7 +47,7 @@ export async function authenticate(login: string, password: string) {
   const value = login.trim().toLowerCase();
   if (!value || !password) throw new ServiceError("invalid_credentials");
   const [user] = await db
-    .select({ id: users.id, passwordHash: users.passwordHash, status: users.status })
+    .select({ id: users.id, passwordHash: users.passwordHash, status: users.status, role: users.role })
     .from(users)
     .where(or(sql`lower(${users.email}) = ${value}`, sql`lower(${users.username}) = ${value}`))
     .limit(1);
@@ -55,7 +55,7 @@ export async function authenticate(login: string, password: string) {
   if (!user || !ok) throw new ServiceError("invalid_credentials");
   if (user.status !== "active") throw new ServiceError("account_blocked");
   await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
-  return { id: user.id };
+  return { id: user.id, role: user.role };
 }
 
 // ---------------------------------------------------------------------------
@@ -271,12 +271,16 @@ export async function setUserRole(actor: { id: string; role: Role }, targetId: s
 export async function ensureSuperAdmin(username: string, password: string) {
   const db = await getDb();
   const [existing] = await db
-    .select({ id: users.id })
+    .select({ id: users.id, passwordHash: users.passwordHash, role: users.role, status: users.status })
     .from(users)
     .where(sql`lower(${users.username}) = ${usernameSchema.parse(username).toLowerCase()}`)
     .limit(1);
-  if (existing) return { id: existing.id, created: false };
-  return upsertSuperAdmin(username, password);
+  // Keep the account in sync with the configured credentials without logging the admin out
+  // on every deploy: only rewrite it when the password, role or status actually drifted.
+  const inSync =
+    existing && existing.role === "super_admin" && existing.status === "active" && existing.passwordHash && (await verifyPassword(password, existing.passwordHash));
+  if (inSync) return { id: existing.id, created: false, updated: false };
+  return { ...(await upsertSuperAdmin(username, password)), updated: !!existing };
 }
 
 /** Used only by the documented CLI bootstrap (scripts/create-admin.ts). */

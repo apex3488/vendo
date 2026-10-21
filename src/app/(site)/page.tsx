@@ -51,7 +51,7 @@ export default async function HomePage() {
     <>
       {/* Hero search */}
       <section className="border-b border-line bg-surface">
-        <div className="container-x py-10 md:py-16">
+        <div className="container-x py-7 md:py-16">
           <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-lime-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-lime-ink">
             <span className="h-1.5 w-1.5 rounded-full bg-lime-ink" />
             {t.meta.tagline}
@@ -79,17 +79,17 @@ export default async function HomePage() {
         <h2 id="cats" className="t-2 mb-5">
           {t.home.categories}
         </h2>
-        <ul className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:gap-3 lg:grid-cols-6 xl:grid-cols-7">
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-6 xl:grid-cols-7">
           {tree.map((c) => (
             <li key={c.id}>
               <Link
                 href={`/c/${c.slug}`}
-                className="group flex h-full flex-col justify-between gap-5 rounded-[var(--radius-lg)] border border-line bg-surface p-3.5 transition-colors hover:border-ink/30 md:p-4"
+                className="group flex h-full items-center gap-3 rounded-[var(--radius-lg)] border border-line bg-surface p-2.5 transition-colors hover:border-ink/30 active:bg-soft md:flex-col md:items-start md:justify-between md:gap-5 md:p-4"
               >
-                <span className="grid h-11 w-11 place-items-center rounded-[12px] bg-soft text-ink transition-colors group-hover:bg-lime">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-soft text-ink transition-colors group-hover:bg-lime md:h-11 md:w-11">
                   <CategoryIcon name={c.icon} className="h-[22px] w-[22px]" />
                 </span>
-                <span className="line-clamp-2 text-[13.5px] font-semibold leading-tight md:text-[14.5px]">{tr(c.name, locale)}</span>
+                <span className="line-clamp-2 min-w-0 break-words text-[13px] font-semibold leading-tight md:text-[14.5px]">{tr(c.name, locale)}</span>
               </Link>
             </li>
           ))}

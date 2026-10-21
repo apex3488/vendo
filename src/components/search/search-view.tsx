@@ -219,7 +219,7 @@ export async function SearchView({
         </div>
       )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr] lg:gap-8">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-8">
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <details className="group rounded-[var(--radius-lg)] border border-line bg-surface lg:hidden" open={false}>
             <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold">

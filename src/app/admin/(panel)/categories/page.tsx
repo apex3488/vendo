@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { count } from "drizzle-orm";
-import { saveCategoryAction } from "../actions";
+import { saveCategoryAction } from "@/app/admin/actions";
 import { AdminForm } from "@/components/admin/admin-ui";
 import { CategoryFields } from "@/components/admin/category-form";
 import { APanel } from "@/components/admin/fields";

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { deleteCollectionAction, deletePageAction, saveCollectionAction, savePageAction } from "../actions";
+import { deleteCollectionAction, deletePageAction, saveCollectionAction, savePageAction } from "@/app/admin/actions";
 import { ActionButton, AdminForm } from "@/components/admin/admin-ui";
 import { ACheck, AField, AInput, APanel, ASelect, I18nInputs } from "@/components/admin/fields";
 import { Badge } from "@/components/ui/misc";

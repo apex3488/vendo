@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { count, eq } from "drizzle-orm";
-import { addOptionAction, deleteAttributeAction, deleteCategoryAction, deleteOptionAction, saveAttributeAction, saveCategoryAction } from "../../actions";
+import { addOptionAction, deleteAttributeAction, deleteCategoryAction, deleteOptionAction, saveAttributeAction, saveCategoryAction } from "@/app/admin/actions";
 import { ActionButton, AdminForm } from "@/components/admin/admin-ui";
 import { CategoryFields } from "@/components/admin/category-form";
 import { ACheck, AField, AInput, APanel, ASelect, I18nInputs } from "@/components/admin/fields";
