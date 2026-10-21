@@ -267,6 +267,18 @@ export async function setUserRole(actor: { id: string; role: Role }, targetId: s
   await audit({ actorId: actor.id, action: "user.set_role", entityType: "user", entityId: targetId, meta: { from: target.role, to: role } });
 }
 
+/** Creates the Super Admin only if that username does not exist yet (safe to run on every deploy). */
+export async function ensureSuperAdmin(username: string, password: string) {
+  const db = await getDb();
+  const [existing] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(sql`lower(${users.username}) = ${usernameSchema.parse(username).toLowerCase()}`)
+    .limit(1);
+  if (existing) return { id: existing.id, created: false };
+  return upsertSuperAdmin(username, password);
+}
+
 /** Used only by the documented CLI bootstrap (scripts/create-admin.ts). */
 export async function upsertSuperAdmin(username: string, password: string, email?: string) {
   const name = usernameSchema.parse(username);

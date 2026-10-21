@@ -86,10 +86,40 @@ class SupabaseStorage implements Storage {
   }
 }
 
+/** Public base URL of a Vercel Blob store, derived from its token (vercel_blob_rw_<storeId>_<secret>). */
+function blobBaseUrl(): string {
+  if (process.env.BLOB_PUBLIC_BASE_URL) return process.env.BLOB_PUBLIC_BASE_URL.replace(/\/$/, "");
+  const storeId = process.env.BLOB_READ_WRITE_TOKEN?.split("_")[3];
+  if (!storeId) throw new Error("BLOB_READ_WRITE_TOKEN is required for vercel-blob storage");
+  return `https://${storeId.toLowerCase()}.public.blob.vercel-storage.com`;
+}
+
+class VercelBlobStorage implements Storage {
+  async put(key: string, data: Buffer, contentType: string) {
+    if (!isValidKey(key)) throw new Error("Invalid storage key");
+    const { put } = await import("@vercel/blob");
+    await put(key, data, { access: "public", contentType, addRandomSuffix: false, cacheControlMaxAge: 31536000 });
+  }
+  async get(key: string) {
+    const res = await fetch(this.publicUrl(key));
+    return res.ok ? Buffer.from(await res.arrayBuffer()) : null;
+  }
+  async remove(keys: string[]) {
+    if (!keys.length) return;
+    const { del } = await import("@vercel/blob");
+    await del(keys.map((k) => this.publicUrl(k)));
+  }
+  publicUrl(key: string) {
+    return `${blobBaseUrl()}/${key}`;
+  }
+}
+
 let instance: Storage | undefined;
 export function getStorage(): Storage {
   if (instance) return instance;
-  if (process.env.STORAGE_DRIVER === "supabase") {
+  if (process.env.STORAGE_DRIVER === "vercel-blob") {
+    instance = new VercelBlobStorage();
+  } else if (process.env.STORAGE_DRIVER === "supabase") {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !key) throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for supabase storage");
@@ -103,6 +133,7 @@ export function getStorage(): Storage {
 /** Public URL for a stored key (safe to call in server components). */
 export function mediaUrl(key: string | null | undefined): string | null {
   if (!key) return null;
+  if (process.env.STORAGE_DRIVER === "vercel-blob") return `${blobBaseUrl()}/${key}`;
   if (process.env.STORAGE_DRIVER === "supabase" && process.env.SUPABASE_URL) {
     return `${process.env.SUPABASE_URL.replace(/\/$/, "")}/storage/v1/object/public/${process.env.SUPABASE_STORAGE_BUCKET || "listing-images"}/${key}`;
   }

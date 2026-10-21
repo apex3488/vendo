@@ -43,7 +43,11 @@ npm run db:demo:clear    # удалить
 | `npm run db:seed` | Справочные данные (идемпотентно, правки админов не перезаписывает) |
 | `npm run admin:create` | Создать/сбросить Super Admin |
 
-## Деплой (минимальные расходы)
+## Деплой на Vercel (текущая схема)
+
+Vercel + Neon Postgres (Vercel → Storage) + Vercel Blob для фото. Репозиторий подключён к проекту Vercel, каждый push в `main` выкатывается автоматически. Перед сборкой production `scripts/vercel-build.ts` применяет миграции, справочные данные и создаёт Super Admin из `ADMIN_USERNAME` / `ADMIN_PASSWORD`, если его ещё нет. Переменные: `DATABASE_URL` (Neon), `BLOB_READ_WRITE_TOKEN` (Blob), `STORAGE_DRIVER=vercel-blob`, `NEXT_PUBLIC_SITE_URL`, `APP_SECRET`, `CRON_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`. Обслуживание запускается Vercel Cron раз в сутки (`vercel.json`).
+
+## Деплой (альтернатива: Supabase)
 
 Рекомендуемая связка: **Supabase** (PostgreSQL + Storage) + **Vercel** (хостинг Next.js). Актуальные лимиты бесплатных тарифов и условия коммерческого использования проверьте перед запуском — они меняются (см. PROJECT_STATUS.md).
 
